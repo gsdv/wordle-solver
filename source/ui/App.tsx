@@ -339,10 +339,37 @@ export default function App({wordlistPath, topN = 10}: Props) {
 								? "Guess: "
 								: `Pattern for "${state.currentGuess}" (0/1/2): `}
 						</Text>
-						<Text bold color="cyan">
-							{state.input}
-						</Text>
-						<Text dimColor>_</Text>
+						{state.phase === "guess" ? (
+							<>
+								<Text bold color="cyan">
+									{state.input}
+								</Text>
+								<Text dimColor>_</Text>
+							</>
+						) : (
+							<>
+								{state.input.split("").map((ch, i) => (
+									<Text
+										key={i}
+										bold
+										color="white"
+										backgroundColor={
+											ch === "2"
+												? "green"
+												: ch === "1"
+													? "yellow"
+													: "gray"
+										}
+									>
+										{" "}
+										{state.currentGuess[i].toUpperCase()}{" "}
+									</Text>
+								))}
+								{state.input.length < wordLen && (
+									<Text dimColor>_</Text>
+								)}
+							</>
+						)}
 					</Box>
 				)}
 			</Box>
