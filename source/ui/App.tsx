@@ -337,7 +337,7 @@ export default function App({wordlistPath, topN = 10}: Props) {
 						<Text>
 							{state.phase === "guess"
 								? "Guess: "
-								: `Pattern for "${state.currentGuess}" (0/1/2): `}
+								: "Pattern: "}
 						</Text>
 						{state.phase === "guess" ? (
 							<>
@@ -370,6 +370,18 @@ export default function App({wordlistPath, topN = 10}: Props) {
 								)}
 							</>
 						)}
+					</Box>
+				)}
+				{state.phase === "pattern" && !state.done && (
+					<Box marginTop={1}>
+					<Text dimColor>
+						<Text backgroundColor="green" color="white"> 2 </Text>
+						{" correct  "}
+						<Text backgroundColor="yellow" color="white"> 1 </Text>
+						{" wrong spot  "}
+						<Text backgroundColor="gray" color="white"> 0 </Text>
+						{" not in word"}
+					</Text>
 					</Box>
 				)}
 			</Box>
