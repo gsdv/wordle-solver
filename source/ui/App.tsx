@@ -273,6 +273,28 @@ export default function App({wordlistPath, wordLen, topN = 10}: Props) {
 					})}
 				</Box>
 
+				{/* Potential Solutions */}
+				<Box flexDirection="column" width={24} marginLeft={2}>
+					<Text bold underline>
+						Potential Solutions
+					</Text>
+					{state.possibleSolutions.length === 0 ? (
+						<Text dimColor>None</Text>
+					) : (
+						<>
+							{state.possibleSolutions.slice(0, 10).map((w) => (
+								<Text key={w}> {w}</Text>
+							))}
+							{state.possibleSolutions.length > 10 && (
+								<Text dimColor>
+									{" "}
+									...and {state.possibleSolutions.length - 10} more
+								</Text>
+							)}
+						</>
+					)}
+				</Box>
+
 				{/* History */}
 				<Box flexDirection="column" marginLeft={2}>
 					<Text bold underline>
