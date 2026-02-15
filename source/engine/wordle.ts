@@ -60,3 +60,49 @@ export function patternCode(p: Tile[]): number {
   }
   return code;
 }
+
+const aCode = 97; // 'a'.charCodeAt(0)
+const remaining = new Uint8Array(26);
+
+/**
+ * Combined feedback + patternCode in one pass.
+ * Returns the base-3 pattern code directly — no intermediate array/Map allocation.
+ */
+export function feedbackCode(guess: string, answer: string): number {
+  const n = guess.length;
+
+  // result[i]: 0=N, 1=P, 2=C
+  // We'll build the base-3 code at the end using a powers array.
+  // First pass: greens
+  remaining.fill(0);
+
+  // Use a small stack-allocated-style approach with local vars
+  // We need per-position results, use a number encoding (pack into bits)
+  let greenMask = 0; // bitmask of green positions
+
+  for (let i = 0; i < n; i++) {
+    if (guess.charCodeAt(i) === answer.charCodeAt(i)) {
+      greenMask |= 1 << i;
+    } else {
+      remaining[answer.charCodeAt(i) - aCode]++;
+    }
+  }
+
+  // Second pass: yellows, and compute code
+  let code = 0;
+  for (let i = 0; i < n; i++) {
+    code *= 3;
+    if (greenMask & (1 << i)) {
+      code += 2; // Correct
+    } else {
+      const idx = guess.charCodeAt(i) - aCode;
+      if (remaining[idx] > 0) {
+        remaining[idx]--;
+        code += 1; // Present
+      }
+      // else 0 (NotPresent), nothing to add
+    }
+  }
+
+  return code;
+}

@@ -1,35 +1,89 @@
 import {MinHeap, type Scored} from "./util/minheap/index.js";
-import {feedback, patternCode} from "./wordle.js";
 
-export function entropyForGuess(g: string, possibleSolutions: string[], wordLen: number): number {
-  const n = possibleSolutions.length;
-  if (n === 0) return 0;
+const aCode = 97;
 
-  const buckets = new Int32Array(3 ** wordLen);
-  for (const s of possibleSolutions) {
-    buckets[patternCode(feedback(g, s))]++;
+function encodeWords(words: string[], wordLen: number): Uint8Array {
+  const buf = new Uint8Array(words.length * wordLen);
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const off = i * wordLen;
+    for (let j = 0; j < wordLen; j++) {
+      buf[off + j] = w.charCodeAt(j) - aCode;
+    }
   }
 
-  let H = 0;
-  for (let i = 0; i < buckets.length; i++) {
-    const count = buckets[i];
-    if (!count || count === 0) continue;
-    const p = count / n;
-    H -= p * Math.log2(p);
-  }
-  return H;
+  return buf;
 }
 
 export function topKEntropyGuesses(
   allGuesses: string[],
   possibleSolutions: string[],
   wordLen: number,
-  k: number
+  k: number,
 ): Scored[] {
+  const nSolutions = possibleSolutions.length;
+  if (nSolutions === 0) return [];
+
+  const guessBuf = encodeWords(allGuesses, wordLen);
+  const solBuf = encodeWords(possibleSolutions, wordLen);
+
+  const numBuckets = 3 ** wordLen;
+  const buckets = new Int32Array(numBuckets);
+  const remaining = new Uint8Array(26);
   const heap = new MinHeap(k);
-  for (const g of allGuesses) {
-    const H = entropyForGuess(g, possibleSolutions, wordLen);
-    heap.push({guess: g, entropy: H});
+  const invN = 1 / nSolutions;
+  const invLn2 = 1 / Math.LN2;
+
+  for (let gi = 0; gi < allGuesses.length; gi++) {
+    const gOff = gi * wordLen;
+
+    // Clear buckets
+    buckets.fill(0);
+
+    for (let si = 0; si < nSolutions; si++) {
+      const sOff = si * wordLen;
+
+      // Inline feedbackCode — no function call overhead
+      remaining.fill(0);
+      let greenMask = 0;
+
+      for (let j = 0; j < wordLen; j++) {
+        if (guessBuf[gOff + j] === solBuf[sOff + j]) {
+          greenMask |= 1 << j;
+        } else {
+          remaining[solBuf[sOff + j]]++;
+        }
+      }
+
+      let code = 0;
+      for (let j = 0; j < wordLen; j++) {
+        code *= 3;
+        if (greenMask & (1 << j)) {
+          code += 2;
+        } else {
+          const idx = guessBuf[gOff + j];
+          if (remaining[idx] > 0) {
+            remaining[idx]--;
+            code += 1;
+          }
+        }
+      }
+
+      buckets[code]++;
+    }
+
+    // Compute entropy
+    let H = 0;
+    for (let b = 0; b < numBuckets; b++) {
+      const count = buckets[b];
+      if (count > 0) {
+        const p = count * invN;
+        H -= p * Math.log(p) * invLn2;
+      }
+    }
+
+    heap.push({guess: allGuesses[gi], entropy: H});
   }
+
   return heap.toSortedDesc();
 }
