@@ -20,13 +20,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pure logic, no UI dependencies:
 
-- **`wordle.ts`** — Core Wordle types (`Tile` enum: C/P/N), `feedback()` (two-pass green-then-yellow), `parsePattern()`, `patternKey()`, `patternCode()` (base-3 encoding), `feedbackCode()` (fused feedback+patternCode returning base-3 int directly, zero-alloc hot path)
+- **`wordle.ts`** — Core Wordle types (`Tile` enum: 0/1/2), `feedback()` (two-pass green-then-yellow), `parsePattern()`, `patternKey()`, `patternCode()` (base-3 encoding), `feedbackCode()` (fused feedback+patternCode returning base-3 int directly, zero-alloc hot path)
 - **`entropy.ts`** — Information-theoretic scoring: `topKEntropyGuesses()` pre-encodes words into flat `Uint8Array` buffers, inlines feedback code computation, and uses a min-heap for top-K selection
 - **`worker.ts`** — Worker thread that runs `topKEntropyGuesses` off the main thread
 - **`computeAsync.ts`** — Spawns `worker.ts` via `worker_threads` and returns `Promise<Scored[]>`
 - **`state.ts`** — `SolverState` type, `computeTop()` (sync), `prunePossibleSolutions()` (pattern-consistency filtering), `applyTurn()`
 - **`util/minheap/`** — Bounded min-heap (capacity K) for top-K selection
-- **`util/wordlist/`** — `loadWordList()` reads a file and filters to words matching expected length
+- **`util/wordlist/`** — `loadWordList()` reads a file, normalizes to lowercase, infers word length from the first word, and validates all words match that length
 
 ### UI (`source/ui/`)
 
