@@ -20,15 +20,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pure logic, no UI dependencies:
 
-- **`wordle.ts`** — Core Wordle types (`Tile` enum: C/P/N), `feedback()` (two-pass green-then-yellow), `parsePattern()`, `patternKey()`, `patternCode()` (base-3 encoding)
-- **`entropy.ts`** — Information-theoretic scoring: `entropyForGuess()` buckets all possible feedbacks into a `Int32Array(3^wordLen)` and computes Shannon entropy. `topKEntropyGuesses()` uses a min-heap to find the top-K guesses efficiently.
-- **`state.ts`** — `SolverState` type and state transitions: `computeTop()`, `prunePossibleSolutions()` (pattern-consistency filtering), `applyTurn()`
+- **`wordle.ts`** — Core Wordle types (`Tile` enum: C/P/N), `feedback()` (two-pass green-then-yellow), `parsePattern()`, `patternKey()`, `patternCode()` (base-3 encoding), `feedbackCode()` (fused feedback+patternCode returning base-3 int directly, zero-alloc hot path)
+- **`entropy.ts`** — Information-theoretic scoring: `topKEntropyGuesses()` pre-encodes words into flat `Uint8Array` buffers, inlines feedback code computation, and uses a min-heap for top-K selection
+- **`worker.ts`** — Worker thread that runs `topKEntropyGuesses` off the main thread
+- **`computeAsync.ts`** — Spawns `worker.ts` via `worker_threads` and returns `Promise<Scored[]>`
+- **`state.ts`** — `SolverState` type, `computeTop()` (sync), `prunePossibleSolutions()` (pattern-consistency filtering), `applyTurn()`
 - **`util/minheap/`** — Bounded min-heap (capacity K) for top-K selection
 - **`util/wordlist/`** — `loadWordList()` reads a file and filters to words matching expected length
 
 ### UI (`source/ui/`)
 
-- **`App.tsx`** — Ink component with two-phase input (guess → pattern), recommendation display with entropy heat coloring, and a history sidebar with colored tiles
+- **`App.tsx`** — Ink component using `useReducer` + raw `useInput` (no `TextInput`). Two-phase input (guess → pattern), top guesses with entropy heat coloring, potential solutions list, and history with colored tiles. Computation runs in a worker thread via `computeTopAsync`.
 
 ## Conventions
 
