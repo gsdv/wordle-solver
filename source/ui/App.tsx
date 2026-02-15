@@ -10,7 +10,6 @@ import type {Scored} from "../engine/util/minheap/index.js";
 
 type Props = {
 	wordlistPath: string;
-	wordLen: number;
 	topN?: number;
 };
 
@@ -97,15 +96,15 @@ function heatColor(t: number): string {
 	return "red";
 }
 
-export default function App({wordlistPath, wordLen, topN = 10}: Props) {
+export default function App({wordlistPath, topN = 10}: Props) {
 	const {exit} = useApp();
 
-	const allWordsRef = useRef<string[]>([]);
-	if (allWordsRef.current.length === 0) {
-		allWordsRef.current = loadWordList(wordlistPath, wordLen);
+	const loadedRef = useRef<{words: string[]; wordLen: number} | null>(null);
+	if (!loadedRef.current) {
+		loadedRef.current = loadWordList(wordlistPath);
 	}
 
-	const allWords = allWordsRef.current;
+	const {words: allWords, wordLen} = loadedRef.current;
 
 	const [state, dispatch] = useReducer(reducer, {
 		allWords,
@@ -162,7 +161,7 @@ export default function App({wordlistPath, wordLen, topN = 10}: Props) {
 				if (!obs) {
 					dispatch({
 						type: "SET_ERROR",
-						error: `Pattern must be ${wordLen} chars of C/P/N.`,
+						error: `Pattern must be ${wordLen} chars of 0/1/2.`,
 					});
 					return;
 				}
@@ -213,6 +212,9 @@ export default function App({wordlistPath, wordLen, topN = 10}: Props) {
 		} else if (key.escape) {
 			exit();
 		} else if (input && !key.ctrl && !key.meta) {
+			if (state.input.length >= wordLen) return;
+			if (state.phase === "guess" && !/^[a-z]+$/.test(input)) return;
+			if (state.phase === "pattern" && !/^[012]+$/.test(input)) return;
 			dispatch({type: "SET_INPUT", input: state.input + input});
 		}
 	});
@@ -335,7 +337,7 @@ export default function App({wordlistPath, wordLen, topN = 10}: Props) {
 						<Text>
 							{state.phase === "guess"
 								? "Guess: "
-								: `Pattern for "${state.currentGuess}" (C/P/N): `}
+								: `Pattern for "${state.currentGuess}" (0/1/2): `}
 						</Text>
 						<Text bold color="cyan">
 							{state.input}

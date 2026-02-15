@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Test:** `npm test` (runs `prettier --check . && xo && ava`)
 - **Lint only:** `npx xo` (ESLint via xo with xo-react config, prettier integration)
 - **Format check:** `npx prettier --check .`
-- **Run the TUI app:** `node dist/index.js wordlist.txt --len 5`
+- **Run the TUI app:** `node dist/index.js wordlist.txt`
 
 ## Architecture
 
@@ -39,4 +39,4 @@ Pure logic, no UI dependencies:
 - Linting: xo with xo-react preset, prettier enabled, `react/prop-types` off
 - Formatting: `@vdemedes/prettier-config`
 - Tests: ava with ts-node/esm loader
-- Pattern notation: C = correct/green, P = present/yellow, N = not present/gray
+- Pattern notation: 2 = correct/green, 1 = present/yellow, 0 = not present/gray

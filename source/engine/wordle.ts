@@ -1,7 +1,7 @@
 export const Tile = {
-  Correct: "C",
-  Present: "P",
-  NotPresent: "N"
+  Correct: 2,
+  Present: 1,
+  NotPresent: 0,
 } as const;
 
 export type Tile = typeof Tile[keyof typeof Tile];
@@ -35,14 +35,14 @@ export function feedback(guess: string, answer: string): Tile[] {
 }
 
 export function parsePattern(s: string, expectedLen: number): Tile[] | null {
-  const t = s.trim().toUpperCase();
+  const t = s.trim();
   if (t.length !== expectedLen) return null;
 
   const out: Tile[] = [];
   for (const ch of t) {
-    if (ch === Tile.Correct) out.push(Tile.Correct);
-    else if (ch === Tile.Present) out.push(Tile.Present);
-    else if (ch === Tile.NotPresent) out.push(Tile.NotPresent);
+    if (ch === "2") out.push(Tile.Correct);
+    else if (ch === "1") out.push(Tile.Present);
+    else if (ch === "0") out.push(Tile.NotPresent);
     else return null;
   }
   return out;
@@ -55,8 +55,7 @@ export function patternKey(p: Tile[]): string {
 export function patternCode(p: Tile[]): number {
   let code = 0;
   for (const t of p) {
-    const d = t === Tile.NotPresent ? 0 : t === Tile.Present ? 1 : 2;
-    code = code * 3 + d;
+    code = code * 3 + t;
   }
   return code;
 }
