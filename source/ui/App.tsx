@@ -159,17 +159,19 @@ export default function App({wordlistPath, topN = 10}: Props) {
 	}, [allWords, compute]);
 
 	useInput((input, key) => {
-		if (state.done) {
-			if (input === "r") {
-				dispatch({type: "RESET", allWords, wordLen, topN});
-				void compute(allWords);
-			} else if (key.escape || input === "q") {
-				exit();
-			}
-
+		// Global shortcuts (work in any state)
+		if (key.ctrl && input === "r") {
+			dispatch({type: "RESET", allWords, wordLen, topN});
+			void compute(allWords);
 			return;
 		}
 
+		if (key.escape) {
+			exit();
+			return;
+		}
+
+		if (state.done) return;
 		if (state.busy) return;
 
 		if (key.return) {
@@ -234,8 +236,6 @@ export default function App({wordlistPath, topN = 10}: Props) {
 			}
 		} else if (key.backspace || key.delete) {
 			dispatch({type: "SET_INPUT", input: state.input.slice(0, -1)});
-		} else if (key.escape) {
-			exit();
 		} else if (input && !key.ctrl && !key.meta) {
 			if (state.input.length >= wordLen) return;
 			if (state.phase === "guess" && !/^[a-z]+$/.test(input)) return;
@@ -359,7 +359,7 @@ export default function App({wordlistPath, topN = 10}: Props) {
 							Solved in {state.history.length} guesses!
 						</Text>
 						<Text dimColor>
-							Press <Text bold color="white">r</Text> for new game or <Text bold color="white">q</Text>/esc to quit
+							Press <Text bold color="white">Ctrl+R</Text> for new game or <Text bold color="white">esc</Text> to quit
 						</Text>
 					</Box>
 				) : (
