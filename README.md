@@ -76,6 +76,7 @@ Once submitted, the solver prunes the solution space, recomputes recommendations
 
 - **Enter** — Submit guess or pattern
 - **Backspace** — Delete last character
+- **Ctrl+R** — Reset and start a new game
 - **Escape** — Quit
 
 ## How it works
