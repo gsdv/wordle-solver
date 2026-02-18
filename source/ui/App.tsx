@@ -139,6 +139,8 @@ export default function App({wordlistPath, topN = 10}: Props) {
 		done: false,
 	});
 
+	const initialTopRef = useRef<Scored[] | null>(null);
+
 	const compute = useCallback(
 		async (possibleSolutions: string[]) => {
 			dispatch({type: "COMPUTING"});
@@ -148,6 +150,10 @@ export default function App({wordlistPath, topN = 10}: Props) {
 				wordLen,
 				topN,
 			);
+			if (!initialTopRef.current) {
+				initialTopRef.current = top;
+			}
+
 			dispatch({type: "SET_TOP", top});
 		},
 		[allWords, wordLen, topN],
@@ -162,7 +168,10 @@ export default function App({wordlistPath, topN = 10}: Props) {
 		// Global shortcuts (work in any state)
 		if (key.ctrl && input === "r") {
 			dispatch({type: "RESET", allWords, wordLen, topN});
-			void compute(allWords);
+			if (initialTopRef.current) {
+				dispatch({type: "SET_TOP", top: initialTopRef.current});
+			}
+
 			return;
 		}
 
