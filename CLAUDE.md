@@ -30,7 +30,7 @@ Pure logic, no UI dependencies:
 
 ### UI (`source/ui/`)
 
-- **`App.tsx`** — Ink component using `useReducer` + raw `useInput` (no `TextInput`). Two-phase input (guess → pattern), top guesses with entropy heat coloring, potential solutions list, and history with colored tiles. Computation runs in a worker thread via `computeTopAsync`.
+- **`App.tsx`** — Ink component using `useReducer` + raw `useInput` (no `TextInput`). Two-phase input (guess → pattern), top guesses with entropy heat coloring, potential solutions list, and history with colored tiles. Computation runs in a worker thread via `computeTopAsync`. Global shortcuts: **Ctrl+R** resets to a new game (instant, uses cached initial results), **Escape** quits.
 
 ## Conventions
 
