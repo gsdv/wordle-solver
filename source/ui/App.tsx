@@ -39,7 +39,8 @@ type Action =
 	| {type: "SUBMIT_GUESS"; guess: string}
 	| {type: "SUBMIT_PATTERN"; next: State}
 	| {type: "COMPUTING"}
-	| {type: "SOLVED"; history: Turn[]};
+	| {type: "SOLVED"; history: Turn[]}
+	| {type: "RESET"; allWords: string[]; wordLen: number; topN: number};
 
 function reducer(state: State, action: Action): State {
 	switch (action.type) {
@@ -75,6 +76,23 @@ function reducer(state: State, action: Action): State {
 
 		case "SOLVED": {
 			return {...state, history: action.history, done: true};
+		}
+
+		case "RESET": {
+			return {
+				allWords: action.allWords,
+				possibleSolutions: action.allWords,
+				wordLen: action.wordLen,
+				topN: action.topN,
+				history: [],
+				top: [],
+				busy: true,
+				phase: "guess" as Phase,
+				input: "",
+				currentGuess: "",
+				error: null,
+				done: false,
+			};
 		}
 
 		default: {
@@ -141,7 +159,17 @@ export default function App({wordlistPath, topN = 10}: Props) {
 	}, [allWords, compute]);
 
 	useInput((input, key) => {
-		if (state.done) return;
+		if (state.done) {
+			if (input === "r") {
+				dispatch({type: "RESET", allWords, wordLen, topN});
+				void compute(allWords);
+			} else if (key.escape || input === "q") {
+				exit();
+			}
+
+			return;
+		}
+
 		if (state.busy) return;
 
 		if (key.return) {
@@ -174,9 +202,6 @@ export default function App({wordlistPath, topN = 10}: Props) {
 							{guess: state.currentGuess, observed: obs},
 						],
 					});
-					setTimeout(() => {
-						exit();
-					}, 100);
 					return;
 				}
 
@@ -329,9 +354,14 @@ export default function App({wordlistPath, topN = 10}: Props) {
 			<Box marginTop={1} flexDirection="column">
 				{state.error && <Text color="red">{state.error}</Text>}
 				{state.done ? (
-					<Text bold color="green">
-						Solved in {state.history.length} guesses!
-					</Text>
+					<Box flexDirection="column">
+						<Text bold color="green">
+							Solved in {state.history.length} guesses!
+						</Text>
+						<Text dimColor>
+							Press <Text bold color="white">r</Text> for new game or <Text bold color="white">q</Text>/esc to quit
+						</Text>
+					</Box>
 				) : (
 					<Box>
 						<Text>
